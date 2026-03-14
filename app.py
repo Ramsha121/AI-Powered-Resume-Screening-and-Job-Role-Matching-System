@@ -310,4 +310,4 @@ Made with lots of ❤️ and Python 🐍  
 <br>
 🔗 LinkedIn: https://www.linkedin.com/in/YOUR-LINK/
 </div>
-""", unsafe_allow_html=True)   can you make it better  without changing the dark theme  and visually better 
+""", unsafe_allow_html=True)  
