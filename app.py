@@ -4,25 +4,35 @@ import re
 import nltk
 import plotly.express as px
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 
+from wordcloud import WordCloud
 from PyPDF2 import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-import nltk
+# -------------------------------------------------
+# DOWNLOAD NLTK DATA
+# -------------------------------------------------
 
-# Ensure required NLTK resources are available
-def download_nltk_resources():
-    resources = ["punkt", "punkt_tab", "stopwords"]
-    for resource in resources:
-        try:
-            nltk.data.find(resource)
-        except LookupError:
-            nltk.download(resource)
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
 
-download_nltk_resources()
+try:
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt_tab')
+
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
+
+
 # -------------------------------------------------
 # PAGE CONFIG
 # -------------------------------------------------
@@ -34,23 +44,30 @@ st.set_page_config(
 )
 
 st.title("🤖 AI Resume Analyzer Dashboard")
-st.write("Upload your resume and get an AI-powered analysis")
+st.write("Upload your resume and get AI-powered insights")
 
 # -------------------------------------------------
 # TEXT EXTRACTION
 # -------------------------------------------------
 
 def extract_resume_text(uploaded_file):
+
     reader = PdfReader(uploaded_file)
+
     text = ""
+
     for page in reader.pages:
+
         page_text = page.extract_text()
+
         if page_text:
             text += page_text
+
     return text.lower()
 
 
 def clean_text(text):
+
     return re.sub(r'\s+', ' ', text)
 
 
@@ -72,26 +89,31 @@ skill_dictionary = [
 
 stop_words = set(stopwords.words('english'))
 
+
 # -------------------------------------------------
 # SKILL EXTRACTION
 # -------------------------------------------------
 
 def extract_skills_nlp(text):
 
-    tokens = word_tokenize(text)
+    tokens = nltk.word_tokenize(text)
+
     tokens = [w for w in tokens if w.isalpha()]
+
     tokens = [w for w in tokens if w not in stop_words]
 
     found_skills = []
 
     for skill in skill_dictionary:
+
         if skill in text:
             found_skills.append(skill)
 
     return list(set(found_skills))
 
+
 # -------------------------------------------------
-# SCORING FUNCTION
+# FEATURE SCORING
 # -------------------------------------------------
 
 def score_feature(text, keywords):
@@ -104,14 +126,13 @@ def score_feature(text, keywords):
 
 
 # -------------------------------------------------
-# KEYWORDS
+# KEYWORD LISTS
 # -------------------------------------------------
 
 education_keywords = [
 "bsc","bachelor","msc","master","phd",
 "computer science","data science","statistics",
-"mathematics","engineering","artificial intelligence",
-"machine learning","deep learning"
+"mathematics","engineering","machine learning"
 ]
 
 experience_keywords = [
@@ -131,12 +152,18 @@ culture_keywords = [
 # -------------------------------------------------
 
 roles = [
+
 {"name":"Business Analyst","weights":np.array([0.4,0.3,0.2,0.1])},
+
 {"name":"Machine Learning Intern","weights":np.array([0.5,0.2,0.2,0.1])},
+
 {"name":"Data Analyst","weights":np.array([0.45,0.25,0.2,0.1])},
+
 {"name":"AI Intern","weights":np.array([0.55,0.15,0.2,0.1])},
+
 {"name":"Research Analyst","weights":np.array([0.3,0.3,0.25,0.15])}
 ]
+
 
 # -------------------------------------------------
 # JOB DESCRIPTIONS
@@ -160,6 +187,7 @@ job_descriptions = {
 "research statistics data analysis research methodology modeling"
 }
 
+
 # -------------------------------------------------
 # REQUIRED SKILLS
 # -------------------------------------------------
@@ -177,6 +205,7 @@ required_skills = {
 "Research Analyst":["statistics","research","data analysis"]
 }
 
+
 # -------------------------------------------------
 # ATS SCORE
 # -------------------------------------------------
@@ -191,7 +220,7 @@ def calculate_ats_score(features):
 
 
 # -------------------------------------------------
-# TFIDF ROLE MATCHING
+# TF-IDF JOB MATCHING
 # -------------------------------------------------
 
 def tfidf_role_matching(resume_text):
@@ -229,38 +258,68 @@ def detect_skill_gaps(resume_text,role):
     missing = []
 
     for s in req:
+
         if s not in resume_text:
+
             missing.append(s)
 
     return missing
 
 
 # -------------------------------------------------
+# WORD CLOUD FUNCTION
+# -------------------------------------------------
+
+def generate_wordcloud(text):
+
+    wordcloud = WordCloud(
+        width=800,
+        height=400,
+        background_color='white',
+        stopwords=stop_words,
+        colormap='viridis'
+    ).generate(text)
+
+    fig, ax = plt.subplots(figsize=(10,5))
+
+    ax.imshow(wordcloud, interpolation='bilinear')
+
+    ax.axis("off")
+
+    return fig
+
+
+# -------------------------------------------------
 # FILE UPLOAD
 # -------------------------------------------------
 
-uploaded_file = st.file_uploader("Upload Resume (PDF)",type=["pdf"])
+uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
 
 
 if uploaded_file:
 
     resume_text = extract_resume_text(uploaded_file)
+
     resume_text = clean_text(resume_text)
 
     skills_found = extract_skills_nlp(resume_text)
 
     skill = score_feature(resume_text,skill_dictionary)
+
     experience = score_feature(resume_text,experience_keywords)
+
     education = score_feature(resume_text,education_keywords)
+
     culture = score_feature(resume_text,culture_keywords)
 
     features = np.array([skill,experience,education,culture])
 
     ats_score = calculate_ats_score(features)
 
-    # -------------------------------------------------
-    # ATS GAUGE
-    # -------------------------------------------------
+
+# -------------------------------------------------
+# ATS GAUGE
+# -------------------------------------------------
 
     st.subheader("ATS Resume Score")
 
@@ -271,82 +330,107 @@ if uploaded_file:
         gauge={'axis':{'range':[0,100]}}
     ))
 
-    st.plotly_chart(fig,use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-    # -------------------------------------------------
-    # FEATURE BARS
-    # -------------------------------------------------
+
+# -------------------------------------------------
+# FEATURE SCORES
+# -------------------------------------------------
 
     st.subheader("Resume Feature Scores")
 
     st.progress(skill/10)
-    st.write("Skill Score:",skill)
+    st.write("Skill Score:", skill)
 
     st.progress(experience/10)
-    st.write("Experience Score:",experience)
+    st.write("Experience Score:", experience)
 
     st.progress(education/10)
-    st.write("Education Score:",education)
+    st.write("Education Score:", education)
 
     st.progress(culture/10)
-    st.write("Culture Score:",culture)
+    st.write("Culture Fit Score:", culture)
 
-    # -------------------------------------------------
-    # SKILLS
-    # -------------------------------------------------
+
+# -------------------------------------------------
+# EXTRACTED SKILLS
+# -------------------------------------------------
 
     st.subheader("Extracted Skills")
 
     st.write(", ".join(skills_found))
 
-    # -------------------------------------------------
-    # ROLE MATCHING
-    # -------------------------------------------------
+
+# -------------------------------------------------
+# WORD CLOUD
+# -------------------------------------------------
+
+    st.subheader("Resume Word Cloud")
+
+    wordcloud_fig = generate_wordcloud(resume_text)
+
+    st.pyplot(wordcloud_fig)
+
+
+# -------------------------------------------------
+# ROLE MATCHING
+# -------------------------------------------------
 
     results = []
 
     for role in roles:
 
-        role_score = np.dot(role["weights"],features)/10
+        role_score = np.dot(role["weights"],features) * 10
 
-        role_score = min(role_score*100,100)
+        role_score = min(role_score,100)
 
         results.append((role["name"],round(role_score,2)))
 
     results.sort(key=lambda x:x[1],reverse=True)
 
     role_names = [r[0] for r in results]
+
     role_scores = [r[1] for r in results]
 
     st.subheader("Best Job Role Matches")
 
     fig2 = px.bar(
+
         x=role_names,
+
         y=role_scores,
+
         labels={'x':'Role','y':'Match Score'}
+
     )
 
-    st.plotly_chart(fig2,use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True)
 
-    # -------------------------------------------------
-    # TFIDF JOB MATCH
-    # -------------------------------------------------
+
+# -------------------------------------------------
+# NLP JOB SIMILARITY
+# -------------------------------------------------
 
     st.subheader("NLP Job Similarity")
 
     tfidf_scores = tfidf_role_matching(resume_text)
 
     fig3 = px.bar(
+
         x=list(tfidf_scores.keys()),
+
         y=list(tfidf_scores.values()),
+
         labels={'x':'Role','y':'Similarity %'}
+
     )
 
-    st.plotly_chart(fig3,use_container_width=True)
+    st.plotly_chart(fig3, use_container_width=True)
 
-    # -------------------------------------------------
-    # SKILL GAP
-    # -------------------------------------------------
+
+# -------------------------------------------------
+# SKILL GAP
+# -------------------------------------------------
 
     top_role = results[0][0]
 
@@ -357,8 +441,13 @@ if uploaded_file:
     st.write("Recommended Role:",top_role)
 
     if len(missing)==0:
+
         st.success("No major skill gaps detected")
+
     else:
+
         st.write("Skills to improve:")
+
         for m in missing:
+
             st.write("-",m)
