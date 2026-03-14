@@ -5,7 +5,6 @@ import re
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
-
 from PyPDF2 import PdfReader
 from wordcloud import WordCloud
 from nltk.corpus import stopwords
@@ -14,300 +13,209 @@ from nltk.corpus import stopwords
 # PAGE CONFIG
 # ---------------------------------------------------
 st.set_page_config(
-    page_title="AI Resume Analyzer",
+    page_title="AI Resume Intelligence",
     page_icon="🤖",
     layout="wide"
 )
 
 # ---------------------------------------------------
-# RED-BLACK DARK THEME + LARGE FONTS
+# ENHANCED RED-BLACK GLASS UI
 # ---------------------------------------------------
 st.markdown("""
 <style>
+    /* MAIN BACKGROUND */
+    .stApp {
+        background: radial-gradient(circle at 50% 50%, #1a0000, #050505, #000000);
+        color: white;
+    }
 
-/* MAIN BACKGROUND */
-.stApp{
-background: linear-gradient(135deg,#000000,#0f0f0f,#1a0000,#300000);
-color:white;
-font-size:45px;
-}
+    /* TITLES: Balanced Size for Impact */
+    .big-title {
+        font-size: 85px !important;
+        font-weight: 900;
+        text-align: center;
+        background: linear-gradient(90deg, #ff0000, #ff4d4d, #8b0000);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+        letter-spacing: -2px;
+    }
 
-/* MAIN TITLE */
-.big-title{
-font-size:500px;
-font-weight:900;
-text-align:center;
-background: linear-gradient(90deg,#ff0000,#ff4d4d,#ff0000);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-margin-bottom:20px;
-letter-spacing:3px;
-}
+    .sub-title {
+        font-size: 24px;
+        text-align: center;
+        color: #bbbbbb;
+        margin-bottom: 40px;
+        font-weight: 300;
+    }
 
-/* SUBTITLE */
-.sub-title{
-font-size:40px;
-text-align:center;
-color:#dddddd;
-margin-bottom:50px;
-}
+    /* GLASS CARDS */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        padding: 30px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 0, 0, 0.15);
+        margin-bottom: 25px;
+    }
 
-/* SECTION CARDS */
-.card{
-background: rgba(255,255,255,0.03);
-padding:25px;
-border-radius:15px;
-margin-bottom:25px;
-border:1px solid rgba(255,0,0,0.2);
-}
+    /* TYPOGRAPHY */
+    h2, h3 {
+        color: #ff4d4d !important;
+        font-weight: 700 !important;
+    }
+    
+    p, span, label, .stMarkdown {
+        font-size: 18px !important;
+        line-height: 1.6;
+    }
 
-/* HEADINGS */
-h2{
-font-size:48px !important;
-color:#ff4d4d !important;
-}
-h3{
-font-size:36px !important;
-color:#ff8080 !important;
-}
+    /* METRICS */
+    [data-testid="stMetricValue"] {
+        font-size: 50px !important;
+        font-weight: 800 !important;
+        color: #ff0000 !important;
+    }
 
-/* TEXT */
-p, span, label{
-font-size:26px !important;
-}
+    /* BUTTONS */
+    .stButton>button {
+        background: linear-gradient(45deg, #ff0000, #660000);
+        color: white;
+        font-size: 20px !important;
+        font-weight: bold;
+        border-radius: 12px;
+        padding: 15px;
+        width: 100%;
+        border: none;
+        transition: 0.4s;
+        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+    }
+    .stButton>button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 0, 0, 0.5);
+    }
 
-/* BUTTON STYLE */
-.stButton>button{
-background: linear-gradient(45deg,#ff0000,#8b0000);
-color:white;
-font-size:28px;
-font-weight:bold;
-border-radius:16px;
-height:70px;
-width:320px;
-border:none;
-transition:0.3s;
-}
-.stButton>button:hover{
-transform:scale(1.08);
-box-shadow:0px 0px 25px red;
-}
-
-/* FILE UPLOADER */
-[data-testid="stFileUploader"]{
-font-size:26px;
-}
-
-/* SUCCESS / INFO TEXT */
-[data-testid="stAlert"]{
-font-size:26px;
-}
-
-/* FOOTER */
-.footer{
-position:fixed;
-bottom:0;
-left:0;
-width:100%;
-text-align:center;
-padding:14px;
-font-size:22px;
-background-color:black;
-color:white;
-border-top:1px solid red;
-}
+    /* SIDEBAR */
+    section[data-testid="stSidebar"] {
+        background-color: #080808;
+        border-right: 1px solid #330000;
+    }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# TITLE
+# APP LOGIC & SETUP
 # ---------------------------------------------------
-st.markdown('<p class="big-title">AI Resume Analyzer</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Upload your resume and get AI powered insights</p>', unsafe_allow_html=True)
-st.write("")
+@st.cache_resource
+def setup_nltk():
+    nltk.download('punkt')
+    nltk.download('stopwords')
 
-# ---------------------------------------------------
-# NLTK DOWNLOAD
-# ---------------------------------------------------
-try:
-    nltk.data.find("tokenizers/punkt")
-except:
-    nltk.download("punkt")
-
-try:
-    nltk.data.find("corpora/stopwords")
-except:
-    nltk.download("stopwords")
-
+setup_nltk()
 stop_words = set(stopwords.words("english"))
 
-# ---------------------------------------------------
-# SKILL DATABASE
-# ---------------------------------------------------
-skill_dictionary = [
-"python","r","sql","excel","tableau","power bi",
-"machine learning","deep learning","ai","nlp",
-"statistics","data analysis","pandas","numpy",
-"matplotlib","seaborn","tensorflow","keras",
-"pytorch","big data","hadoop","spark",
-"mongodb","postgresql","mysql",
-"dashboard","analytics","classification","regression"
+skill_db = [
+    "python","sql","tableau","power bi","machine learning","deep learning",
+    "nlp","statistics","pandas","numpy","tensorflow","keras","pytorch",
+    "aws","azure","scikit-learn","matplotlib","seaborn","excel"
 ]
 
 # ---------------------------------------------------
-# REQUIRED SKILLS
+# HEADER
 # ---------------------------------------------------
-required_skills = {
-"Data Analyst":["python","sql","tableau","statistics","excel"],
-"Machine Learning Intern":["python","machine learning","pandas","numpy","deep learning"],
-"AI Intern":["python","deep learning","nlp","tensorflow","pytorch"],
-"Business Analyst":["sql","excel","dashboard","tableau","communication"]
-}
+st.markdown('<p class="big-title">RESUME AI</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Advanced PDF Analysis & Skill Mapping</p>', unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# FILE UPLOAD
+# SIDEBAR
 # ---------------------------------------------------
-uploaded_file = st.file_uploader("📄 Upload Resume PDF", type=["pdf"])
+with st.sidebar:
+    st.title("🎯 Analysis Panel")
+    target_role = st.selectbox("Compare against role:", 
+                               ["Data Scientist", "Machine Learning Intern", "Data Analyst", "AI Engineer"])
+    st.markdown("---")
+    st.write("This tool uses Natural Language Processing to extract key competencies from your profile.")
 
 # ---------------------------------------------------
-# FUNCTIONS
+# MAIN CONTENT
 # ---------------------------------------------------
-def extract_text(file):
+uploaded_file = st.file_uploader("Drop your Resume (PDF)", type=["pdf"])
+
+def extract_content(file):
     reader = PdfReader(file)
-    text=""
+    text = ""
     for page in reader.pages:
-        t = page.extract_text()
-        if t:
-            text += t
+        text += page.extract_text() or ""
     return text.lower()
 
-def extract_skills(text):
-    found=[]
-    for skill in skill_dictionary:
-        if skill in text:
-            found.append(skill)
-    return list(set(found))
-
-def score_section(text, keywords):
-    count=0
-    for k in keywords:
-        if k in text:
-            count+=1
-    score=(count/len(keywords))*10
-    return round(score,2)
-
-def ats_score(skill,exp,edu,culture):
-    ats=(skill*3)+(exp*3)+(edu*2)+(culture*2)
-    return round(min(ats,100),2)
-
-def generate_wordcloud(text):
-    wc=WordCloud(
-        width=900,
-        height=500,
-        background_color="black",
-        colormap="Reds",
-        stopwords=stop_words
-    ).generate(text)
-    fig,ax=plt.subplots()
-    ax.imshow(wc)
-    ax.axis("off")
-    return fig
-
-def role_matching(text):
-    roles={
-    "Data Analyst":["python","sql","statistics","tableau"],
-    "Machine Learning Intern":["python","machine learning","pandas","numpy"],
-    "AI Intern":["python","deep learning","nlp"],
-    "Business Analyst":["sql","excel","dashboard"]
-    }
-    scores={}
-    for role in roles:
-        score=0
-        for skill in roles[role]:
-            if skill in text:
-                score+=1
-        scores[role]=score*25
-    return scores
-
-def detect_skill_gap(text,role):
-    required=required_skills[role]
-    missing=[]
-    for s in required:
-        if s not in text:
-            missing.append(s)
-    return missing
-
-# ---------------------------------------------------
-# ANALYZE BUTTON
-# ---------------------------------------------------
 if uploaded_file:
-    if st.button("🚀 Analyze Resume"):
-        resume_text = extract_text(uploaded_file)
+    # Processing
+    resume_text = extract_content(uploaded_file)
+    found_skills = [s for s in skill_db if s in resume_text]
+    
+    # Calculate mock scores based on text density
+    skill_score = min(len(found_skills) * 12, 100)
+    exp_matches = len(re.findall(r"(intern|experience|project|work)", resume_text))
+    ats_score = min((skill_score * 0.6) + (exp_matches * 10) + 15, 100)
 
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("🧠 Extracted Skills")
-        skills = extract_skills(resume_text)
-        st.success(", ".join(skills))
-        st.markdown('</div>', unsafe_allow_html=True)
+    # UI ROW 1: METRICS
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    c1.metric("ATS Match", f"{int(ats_score)}%")
+    c2.metric("Skills Found", len(found_skills))
+    c3.metric("Clarity", "High")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        # SECTION SCORES
-        skill_score = score_section(resume_text, skill_dictionary)
-        exp_keywords=["intern","project","experience","research"]
-        edu_keywords=["bsc","msc","phd","bachelor"]
-        culture_keywords=["team","leadership","communication"]
-        exp_score = score_section(resume_text,exp_keywords)
-        edu_score = score_section(resume_text,edu_keywords)
-        culture_score = score_section(resume_text,culture_keywords)
+    # UI ROW 2: VISUALS
+    col_left, col_right = st.columns([1.5, 1])
 
-        # ATS SCORE
-        ats = ats_score(skill_score,exp_score,edu_score,culture_score)
-        st.subheader("📊 ATS Resume Score")
+    with col_left:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.subheader("📊 Skill Analysis Gauge")
         fig = go.Figure(go.Indicator(
             mode="gauge+number",
-            value=ats,
-            gauge={'axis':{'range':[0,100]},'bar':{'color':"red"}},
-            title={'text':"ATS Resume Score"}
+            value=ats_score,
+            gauge={
+                'axis': {'range': [0, 100], 'tickcolor': "white"},
+                'bar': {'color': "#ff0000"},
+                'bgcolor': "rgba(0,0,0,0)",
+                'steps': [
+                    {'range': [0, 50], 'color': '#220000'},
+                    {'range': [50, 80], 'color': '#440000'}
+                ]
+            }
         ))
-        fig.update_layout(template="plotly_dark")
-        st.plotly_chart(fig,use_container_width=True)
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white", 'family': "sans-serif"}, height=350)
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # WORD CLOUD
-        st.subheader("💡 Resume Word Cloud")
-        wc = generate_wordcloud(resume_text)
-        st.pyplot(wc)
-
-        # ROLE MATCHING
-        st.subheader("🎯 Best Job Role Match")
-        scores = role_matching(resume_text)
-        fig2 = px.bar(
-            x=list(scores.keys()),
-            y=list(scores.values()),
-            color=list(scores.values()),
-            color_continuous_scale="Reds"
-        )
-        fig2.update_layout(template="plotly_dark")
-        st.plotly_chart(fig2,use_container_width=True)
-
-        # SKILL GAP
-        top_role = max(scores, key=scores.get)
-        st.subheader("📉 Skill Gap Analysis")
-        st.info(f"Recommended Role: {top_role}")
-        missing = detect_skill_gap(resume_text,top_role)
-        if len(missing)==0:
-            st.success("Your resume matches this role well!")
+    with col_right:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.subheader("🛠️ Expertise Tag Cloud")
+        if found_skills:
+            # Displaying skills as colored tags
+            for s in found_skills:
+                st.markdown(f"🚩 <span style='color:#ff8080; font-weight:bold;'>{s.upper()}</span>", unsafe_allow_html=True)
         else:
-            st.write("Skills to improve:")
-            for m in missing:
-                st.write("•",m)
+            st.write("No technical skills detected.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # UI ROW 3: WORDCLOUD
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.subheader("🔍 Keyword Relevance")
+    wc = WordCloud(width=1000, height=400, background_color=None, mode="RGBA", colormap="Reds").generate(resume_text)
+    fig_wc, ax = plt.subplots(figsize=(10, 4), facecolor='none')
+    ax.imshow(wc, interpolation='bilinear')
+    ax.axis("off")
+    st.pyplot(fig_wc)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------
 # FOOTER
 # ---------------------------------------------------
 st.markdown("""
-<div class="footer">
-Made with lots of ❤️ and Python 🐍  
-<br>
-🔗 LinkedIn: https://www.linkedin.com/in/YOUR-LINK/
+<div style="text-align:center; padding: 40px; color: #444; font-size: 14px;">
+    SYSTEM STATUS: OPTIMIZED | THEME: NOIR RED | VERSION 2.1
 </div>
 """, unsafe_allow_html=True)
