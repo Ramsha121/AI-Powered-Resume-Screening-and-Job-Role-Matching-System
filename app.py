@@ -301,6 +301,8 @@ if uploaded_file:
 # ---------------------------------------------------
 st.markdown("""
 <div class="footer">
-    MADE WITH ❤️ AND PYTHON 🐍 | 🔗 LinkedIn: YOUR-LINK
+    MADE WITH ❤️ AND PYTHON 🐍 | 🔗 LinkedIn: www.linkedin.com/in/ramsha-khan-582522291
+
+
 </div>
 """, unsafe_allow_html=True)
