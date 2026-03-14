@@ -291,7 +291,7 @@ if uploaded_file:
         if not missing:
             st.success("CRITICAL MATCH: ALL SKILLS PRESENT")
         else:
-            st.write("### URGENT IMPROVEMENTS REQUIRED:")
+            st.write("### SKILL GAPS:")
             for m in missing:
                 st.markdown(f"🚩 <span style='color:#ff4d4d; font-size:35px; font-weight:bold;'>{m.upper()}</span>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
