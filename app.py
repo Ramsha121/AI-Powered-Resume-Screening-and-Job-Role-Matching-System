@@ -7,29 +7,24 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 
 from wordcloud import WordCloud
+from PIL import Image
 from PyPDF2 import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 # -------------------------------------------------
-# DOWNLOAD NLTK DATA
+# NLTK DOWNLOAD
 # -------------------------------------------------
 
 try:
     nltk.data.find('tokenizers/punkt')
-except LookupError:
+except:
     nltk.download('punkt')
 
 try:
-    nltk.data.find('tokenizers/punkt_tab')
-except LookupError:
-    nltk.download('punkt_tab')
-
-try:
     nltk.data.find('corpora/stopwords')
-except LookupError:
+except:
     nltk.download('stopwords')
 
 
@@ -47,6 +42,17 @@ st.title("🤖 AI Resume Analyzer Dashboard")
 st.write("Upload your resume and get AI-powered insights")
 
 # -------------------------------------------------
+# STREAMLIT THEME DETECTION
+# -------------------------------------------------
+
+theme = st.get_option("theme.base")
+
+if theme == "dark":
+    bg_color = "#0e1117"
+else:
+    bg_color = "white"
+
+# -------------------------------------------------
 # TEXT EXTRACTION
 # -------------------------------------------------
 
@@ -57,9 +63,7 @@ def extract_resume_text(uploaded_file):
     text = ""
 
     for page in reader.pages:
-
         page_text = page.extract_text()
-
         if page_text:
             text += page_text
 
@@ -67,7 +71,6 @@ def extract_resume_text(uploaded_file):
 
 
 def clean_text(text):
-
     return re.sub(r'\s+', ' ', text)
 
 
@@ -89,7 +92,6 @@ skill_dictionary = [
 
 stop_words = set(stopwords.words('english'))
 
-
 # -------------------------------------------------
 # SKILL EXTRACTION
 # -------------------------------------------------
@@ -99,13 +101,11 @@ def extract_skills_nlp(text):
     tokens = nltk.word_tokenize(text)
 
     tokens = [w for w in tokens if w.isalpha()]
-
     tokens = [w for w in tokens if w not in stop_words]
 
     found_skills = []
 
     for skill in skill_dictionary:
-
         if skill in text:
             found_skills.append(skill)
 
@@ -126,7 +126,7 @@ def score_feature(text, keywords):
 
 
 # -------------------------------------------------
-# KEYWORD LISTS
+# KEYWORDS
 # -------------------------------------------------
 
 education_keywords = [
@@ -152,15 +152,10 @@ culture_keywords = [
 # -------------------------------------------------
 
 roles = [
-
 {"name":"Business Analyst","weights":np.array([0.4,0.3,0.2,0.1])},
-
 {"name":"Machine Learning Intern","weights":np.array([0.5,0.2,0.2,0.1])},
-
 {"name":"Data Analyst","weights":np.array([0.45,0.25,0.2,0.1])},
-
 {"name":"AI Intern","weights":np.array([0.55,0.15,0.2,0.1])},
-
 {"name":"Research Analyst","weights":np.array([0.3,0.3,0.25,0.15])}
 ]
 
@@ -220,7 +215,7 @@ def calculate_ats_score(features):
 
 
 # -------------------------------------------------
-# TF-IDF JOB MATCHING
+# TFIDF MATCH
 # -------------------------------------------------
 
 def tfidf_role_matching(resume_text):
@@ -241,7 +236,6 @@ def tfidf_role_matching(resume_text):
     scores = {}
 
     for i,role in enumerate(job_descriptions):
-
         scores[role] = round(similarities[0][i]*100,2)
 
     return scores
@@ -258,31 +252,34 @@ def detect_skill_gaps(resume_text,role):
     missing = []
 
     for s in req:
-
         if s not in resume_text:
-
             missing.append(s)
 
     return missing
 
 
 # -------------------------------------------------
-# WORD CLOUD FUNCTION
+# COLORFUL WORD CLOUD
 # -------------------------------------------------
 
 def generate_wordcloud(text):
 
+    mask = np.array(Image.open("bulb.png"))
+
     wordcloud = WordCloud(
-        width=800,
-        height=400,
-        background_color='white',
+        width=900,
+        height=700,
+        mask=mask,
+        background_color=bg_color,
         stopwords=stop_words,
-        colormap='viridis'
+        colormap="plasma",   # colorful palette
+        contour_width=2,
+        contour_color="orange"
     ).generate(text)
 
-    fig, ax = plt.subplots(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(8,8))
 
-    ax.imshow(wordcloud, interpolation='bilinear')
+    ax.imshow(wordcloud, interpolation="bilinear")
 
     ax.axis("off")
 
@@ -295,21 +292,16 @@ def generate_wordcloud(text):
 
 uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
 
-
 if uploaded_file:
 
     resume_text = extract_resume_text(uploaded_file)
-
     resume_text = clean_text(resume_text)
 
     skills_found = extract_skills_nlp(resume_text)
 
     skill = score_feature(resume_text,skill_dictionary)
-
     experience = score_feature(resume_text,experience_keywords)
-
     education = score_feature(resume_text,education_keywords)
-
     culture = score_feature(resume_text,culture_keywords)
 
     features = np.array([skill,experience,education,culture])
@@ -330,7 +322,7 @@ if uploaded_file:
         gauge={'axis':{'range':[0,100]}}
     ))
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig,use_container_width=True)
 
 
 # -------------------------------------------------
@@ -340,20 +332,20 @@ if uploaded_file:
     st.subheader("Resume Feature Scores")
 
     st.progress(skill/10)
-    st.write("Skill Score:", skill)
+    st.write("Skill Score:",skill)
 
     st.progress(experience/10)
-    st.write("Experience Score:", experience)
+    st.write("Experience Score:",experience)
 
     st.progress(education/10)
-    st.write("Education Score:", education)
+    st.write("Education Score:",education)
 
     st.progress(culture/10)
-    st.write("Culture Fit Score:", culture)
+    st.write("Culture Score:",culture)
 
 
 # -------------------------------------------------
-# EXTRACTED SKILLS
+# SKILLS
 # -------------------------------------------------
 
     st.subheader("Extracted Skills")
@@ -365,7 +357,7 @@ if uploaded_file:
 # WORD CLOUD
 # -------------------------------------------------
 
-    st.subheader("Resume Word Cloud")
+    st.subheader("💡 Resume Idea Cloud")
 
     wordcloud_fig = generate_wordcloud(resume_text)
 
@@ -373,7 +365,7 @@ if uploaded_file:
 
 
 # -------------------------------------------------
-# ROLE MATCHING
+# ROLE MATCH
 # -------------------------------------------------
 
     results = []
@@ -381,7 +373,6 @@ if uploaded_file:
     for role in roles:
 
         role_score = np.dot(role["weights"],features) * 10
-
         role_score = min(role_score,100)
 
         results.append((role["name"],round(role_score,2)))
@@ -389,26 +380,17 @@ if uploaded_file:
     results.sort(key=lambda x:x[1],reverse=True)
 
     role_names = [r[0] for r in results]
-
     role_scores = [r[1] for r in results]
 
     st.subheader("Best Job Role Matches")
 
-    fig2 = px.bar(
+    fig2 = px.bar(x=role_names,y=role_scores)
 
-        x=role_names,
-
-        y=role_scores,
-
-        labels={'x':'Role','y':'Match Score'}
-
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2,use_container_width=True)
 
 
 # -------------------------------------------------
-# NLP JOB SIMILARITY
+# NLP SIMILARITY
 # -------------------------------------------------
 
     st.subheader("NLP Job Similarity")
@@ -416,16 +398,11 @@ if uploaded_file:
     tfidf_scores = tfidf_role_matching(resume_text)
 
     fig3 = px.bar(
-
         x=list(tfidf_scores.keys()),
-
-        y=list(tfidf_scores.values()),
-
-        labels={'x':'Role','y':'Similarity %'}
-
+        y=list(tfidf_scores.values())
     )
 
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3,use_container_width=True)
 
 
 # -------------------------------------------------
@@ -441,13 +418,7 @@ if uploaded_file:
     st.write("Recommended Role:",top_role)
 
     if len(missing)==0:
-
         st.success("No major skill gaps detected")
-
     else:
-
-        st.write("Skills to improve:")
-
         for m in missing:
-
             st.write("-",m)
