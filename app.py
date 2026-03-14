@@ -14,208 +14,212 @@ from nltk.corpus import stopwords
 # ---------------------------------------------------
 st.set_page_config(
     page_title="AI Resume Intelligence",
-    page_icon="🤖",
+    page_icon="🎯",
     layout="wide"
 )
 
 # ---------------------------------------------------
-# ENHANCED RED-BLACK GLASS UI
+# ULTIMATE NOIR-RED THEME
 # ---------------------------------------------------
 st.markdown("""
 <style>
-    /* MAIN BACKGROUND */
+    /* Animated Gradient Background */
     .stApp {
-        background: radial-gradient(circle at 50% 50%, #1a0000, #050505, #000000);
-        color: white;
+        background: linear-gradient(135deg, #0a0000 0%, #1a0000 50%, #000000 100%);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+        color: #ffffff;
+    }
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
 
-    /* TITLES: Balanced Size for Impact */
-    .big-title {
-        font-size: 85px !important;
+    /* Glassmorphism Containers */
+    .main-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        padding: 40px;
+        border: 1px solid rgba(255, 77, 77, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin-bottom: 30px;
+    }
+
+    /* Typography */
+    .hero-title {
+        font-size: clamp(50px, 8vw, 100px);
         font-weight: 900;
         text-align: center;
-        background: linear-gradient(90deg, #ff0000, #ff4d4d, #8b0000);
+        background: linear-gradient(to right, #ff4d4d, #8b0000);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
-        letter-spacing: -2px;
+        margin-bottom: 0px;
+        filter: drop-shadow(0 5px 15px rgba(255, 0, 0, 0.2));
     }
 
-    .sub-title {
-        font-size: 24px;
-        text-align: center;
-        color: #bbbbbb;
-        margin-bottom: 40px;
-        font-weight: 300;
+    .stat-label {
+        font-size: 16px;
+        color: #ff8080;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
     }
 
-    /* GLASS CARDS */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(15px);
-        padding: 30px;
+    /* Metric Enhancement */
+    [data-testid="stMetric"] {
+        background: rgba(255, 0, 0, 0.05);
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 5px solid #ff4d4d;
+    }
+
+    /* Custom File Uploader */
+    [data-testid="stFileUploader"] {
+        border: 2px dashed rgba(255, 77, 77, 0.3);
+        padding: 20px;
         border-radius: 20px;
-        border: 1px solid rgba(255, 0, 0, 0.15);
-        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.01);
     }
 
-    /* TYPOGRAPHY */
-    h2, h3 {
-        color: #ff4d4d !important;
-        font-weight: 700 !important;
-    }
-    
-    p, span, label, .stMarkdown {
-        font-size: 18px !important;
-        line-height: 1.6;
-    }
-
-    /* METRICS */
-    [data-testid="stMetricValue"] {
-        font-size: 50px !important;
-        font-weight: 800 !important;
-        color: #ff0000 !important;
-    }
-
-    /* BUTTONS */
+    /* Buttons */
     .stButton>button {
-        background: linear-gradient(45deg, #ff0000, #660000);
-        color: white;
-        font-size: 20px !important;
-        font-weight: bold;
-        border-radius: 12px;
-        padding: 15px;
         width: 100%;
+        border-radius: 50px;
+        height: 60px;
+        background: linear-gradient(45deg, #ff0000, #4d0000);
         border: none;
-        transition: 0.4s;
-        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+        color: white;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
     }
     .stButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(255, 0, 0, 0.5);
+        transform: scale(1.02);
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
     }
-
-    /* SIDEBAR */
-    section[data-testid="stSidebar"] {
-        background-color: #080808;
-        border-right: 1px solid #330000;
-    }
-
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# APP LOGIC & SETUP
+# PRE-FLIGHT CHECKS
 # ---------------------------------------------------
 @st.cache_resource
-def setup_nltk():
+def load_nlp():
     nltk.download('punkt')
     nltk.download('stopwords')
 
-setup_nltk()
-stop_words = set(stopwords.words("english"))
+load_nlp()
+STOPWORDS = set(stopwords.words("english"))
 
-skill_db = [
-    "python","sql","tableau","power bi","machine learning","deep learning",
-    "nlp","statistics","pandas","numpy","tensorflow","keras","pytorch",
-    "aws","azure","scikit-learn","matplotlib","seaborn","excel"
+SKILL_CATALOGUE = [
+    "python","r","sql","tableau","power bi", "machine learning","deep learning","ai","nlp",
+    "statistics","data analysis","pandas","numpy","matplotlib","seaborn","tensorflow","keras",
+    "pytorch","big data","hadoop","spark","mongodb","postgresql","mysql","dashboard","analytics"
 ]
 
 # ---------------------------------------------------
-# HEADER
+# DASHBOARD LOGIC
 # ---------------------------------------------------
-st.markdown('<p class="big-title">RESUME AI</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Advanced PDF Analysis & Skill Mapping</p>', unsafe_allow_html=True)
-
-# ---------------------------------------------------
-# SIDEBAR
-# ---------------------------------------------------
-with st.sidebar:
-    st.title("🎯 Analysis Panel")
-    target_role = st.selectbox("Compare against role:", 
-                               ["Data Scientist", "Machine Learning Intern", "Data Analyst", "AI Engineer"])
-    st.markdown("---")
-    st.write("This tool uses Natural Language Processing to extract key competencies from your profile.")
-
-# ---------------------------------------------------
-# MAIN CONTENT
-# ---------------------------------------------------
-uploaded_file = st.file_uploader("Drop your Resume (PDF)", type=["pdf"])
-
-def extract_content(file):
+def process_pdf(file):
     reader = PdfReader(file)
-    text = ""
+    content = ""
     for page in reader.pages:
-        text += page.extract_text() or ""
-    return text.lower()
+        content += page.extract_text() or ""
+    return content.lower()
 
-if uploaded_file:
-    # Processing
-    resume_text = extract_content(uploaded_file)
-    found_skills = [s for s in skill_db if s in resume_text]
-    
-    # Calculate mock scores based on text density
-    skill_score = min(len(found_skills) * 12, 100)
-    exp_matches = len(re.findall(r"(intern|experience|project|work)", resume_text))
-    ats_score = min((skill_score * 0.6) + (exp_matches * 10) + 15, 100)
+def analyze_resume(text):
+    found = [s for s in SKILL_CATALOGUE if s in text]
+    score = min(len(found) * 15, 100)
+    return list(set(found)), score
 
-    # UI ROW 1: METRICS
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    c1.metric("ATS Match", f"{int(ats_score)}%")
-    c2.metric("Skills Found", len(found_skills))
-    c3.metric("Clarity", "High")
+# ---------------------------------------------------
+# LAYOUT
+# ---------------------------------------------------
+st.markdown('<p class="hero-title">INSIGHT ENGINE</p>', unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#666; font-size:20px; margin-bottom:40px;'>Empowering Careers with Neural Intelligence</p>", unsafe_allow_html=True)
+
+# Main Interaction Area
+with st.container():
+    st.markdown('<div class="main-card">', unsafe_allow_html=True)
+    file = st.file_uploader("DROP RESUME PDF HERE", type=["pdf"], label_visibility="collapsed")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # UI ROW 2: VISUALS
-    col_left, col_right = st.columns([1.5, 1])
+if file:
+    text_data = process_pdf(file)
+    skills, match_pct = analyze_resume(text_data)
 
-    with col_left:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.subheader("📊 Skill Analysis Gauge")
-        fig = go.Figure(go.Indicator(
+    # TOP METRICS ROW
+    m1, m2, m3, m4 = st.columns(4)
+    with m1: st.metric("MATCH RATE", f"{match_pct}%")
+    with m2: st.metric("SKILLS", len(skills))
+    with m3: st.metric("PAGES", len(PdfReader(file).pages))
+    with m4: st.metric("COMPLEXITY", "Optimal" if match_pct > 70 else "Basic")
+
+    st.write("")
+
+    # ANALYTICS DASHBOARD
+    col_a, col_b = st.columns([1, 1.2])
+
+    with col_a:
+        st.markdown('<div class="main-card">', unsafe_allow_html=True)
+        st.subheader("🎯 Neural Proficiency Gauge")
+        gauge = go.Figure(go.Indicator(
             mode="gauge+number",
-            value=ats_score,
+            value=match_pct,
+            domain={'x': [0, 1], 'y': [0, 1]},
             gauge={
-                'axis': {'range': [0, 100], 'tickcolor': "white"},
+                'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "white"},
                 'bar': {'color': "#ff0000"},
                 'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 2,
+                'bordercolor': "#444",
                 'steps': [
-                    {'range': [0, 50], 'color': '#220000'},
-                    {'range': [50, 80], 'color': '#440000'}
-                ]
+                    {'range': [0, 50], 'color': 'rgba(255, 0, 0, 0.1)'},
+                    {'range': [50, 80], 'color': 'rgba(255, 0, 0, 0.2)'}
+                ],
             }
         ))
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white", 'family': "sans-serif"}, height=350)
-        st.plotly_chart(fig, use_container_width=True)
+        gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white", 'family': "Arial"}, height=300)
+        st.plotly_chart(gauge, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with col_right:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.subheader("🛠️ Expertise Tag Cloud")
-        if found_skills:
-            # Displaying skills as colored tags
-            for s in found_skills:
-                st.markdown(f"🚩 <span style='color:#ff8080; font-weight:bold;'>{s.upper()}</span>", unsafe_allow_html=True)
+    with col_b:
+        st.markdown('<div class="main-card">', unsafe_allow_html=True)
+        st.subheader("🚀 Competency Mapping")
+        if skills:
+            # Create a nice badge layout
+            badge_html = "".join([f'<span style="background:rgba(255,0,0,0.2); color:#ff4d4d; border:1px solid #ff4d4d; padding:5px 15px; border-radius:50px; margin:5px; display:inline-block; font-weight:bold;">{s.upper()}</span>' for s in skills])
+            st.markdown(badge_html, unsafe_allow_html=True)
         else:
-            st.write("No technical skills detected.")
+            st.error("NO TECHNICAL COMPETENCIES DETECTED.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # UI ROW 3: WORDCLOUD
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.subheader("🔍 Keyword Relevance")
-    wc = WordCloud(width=1000, height=400, background_color=None, mode="RGBA", colormap="Reds").generate(resume_text)
-    fig_wc, ax = plt.subplots(figsize=(10, 4), facecolor='none')
+    # BOTTOM ROW: WORDCLOUD
+    st.markdown('<div class="main-card">', unsafe_allow_html=True)
+    st.subheader("☁️ Semantic Word Density")
+    wc = WordCloud(
+        width=1200, 
+        height=400, 
+        background_color=None, 
+        mode="RGBA", 
+        colormap="Reds", 
+        font_path=None # Can add custom font path here
+    ).generate(text_data)
+    
+    fig, ax = plt.subplots(figsize=(15, 5), facecolor='none')
     ax.imshow(wc, interpolation='bilinear')
     ax.axis("off")
-    st.pyplot(fig_wc)
+    st.pyplot(fig)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------
 # FOOTER
 # ---------------------------------------------------
 st.markdown("""
-<div style="text-align:center; padding: 40px; color: #444; font-size: 14px;">
-    SYSTEM STATUS: OPTIMIZED | THEME: NOIR RED | VERSION 2.1
+<div style="text-align:center; padding: 50px; opacity: 0.4;">
+    DESIGNED BY AI | STREAMLIT CLOUD DEPLOYED | 2026
 </div>
 """, unsafe_allow_html=True)
