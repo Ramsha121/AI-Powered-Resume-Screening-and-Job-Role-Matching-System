@@ -13,6 +13,57 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.corpus import stopwords
 
+
+# -------------------------------------------------
+# PAGE CONFIG
+# -------------------------------------------------
+
+st.set_page_config(
+    page_title="AI Resume Analyzer",
+    page_icon="🤖",
+    layout="wide"
+)
+
+
+# -------------------------------------------------
+# DARK THEME CSS
+# -------------------------------------------------
+
+st.markdown(
+"""
+<style>
+
+.stApp {
+    background-color: #0e1117;
+    color: white;
+}
+
+h1, h2, h3, h4 {
+    color: #00F5D4;
+}
+
+.footer {
+position: fixed;
+left: 0;
+bottom: 0;
+width: 100%;
+background-color: #0e1117;
+color: white;
+text-align: center;
+padding: 10px;
+font-size: 14px;
+}
+
+</style>
+""",
+unsafe_allow_html=True
+)
+
+st.title("🤖 AI Resume Analyzer Dashboard")
+st.write("Upload your resume and get AI-powered insights")
+
+
+
 # -------------------------------------------------
 # NLTK DOWNLOAD
 # -------------------------------------------------
@@ -28,29 +79,8 @@ except:
     nltk.download('stopwords')
 
 
-# -------------------------------------------------
-# PAGE CONFIG
-# -------------------------------------------------
+stop_words = set(stopwords.words('english'))
 
-st.set_page_config(
-    page_title="AI Resume Analyzer",
-    page_icon="📄",
-    layout="wide"
-)
-
-st.title("🤖 AI Resume Analyzer Dashboard")
-st.write("Upload your resume and get AI-powered insights")
-
-# -------------------------------------------------
-# STREAMLIT THEME DETECTION
-# -------------------------------------------------
-
-theme = st.get_option("theme.base")
-
-if theme == "dark":
-    bg_color = "#0e1117"
-else:
-    bg_color = "white"
 
 # -------------------------------------------------
 # TEXT EXTRACTION
@@ -63,15 +93,19 @@ def extract_resume_text(uploaded_file):
     text = ""
 
     for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text
+        t = page.extract_text()
+
+        if t:
+            text += t
 
     return text.lower()
 
 
 def clean_text(text):
-    return re.sub(r'\s+', ' ', text)
+
+    text = re.sub(r'\s+', ' ', text)
+
+    return text
 
 
 # -------------------------------------------------
@@ -90,7 +124,6 @@ skill_dictionary = [
 "dashboard","analytics","regression","classification"
 ]
 
-stop_words = set(stopwords.words('english'))
 
 # -------------------------------------------------
 # SKILL EXTRACTION
@@ -101,15 +134,18 @@ def extract_skills_nlp(text):
     tokens = nltk.word_tokenize(text)
 
     tokens = [w for w in tokens if w.isalpha()]
+
     tokens = [w for w in tokens if w not in stop_words]
 
-    found_skills = []
+    skills = []
 
     for skill in skill_dictionary:
-        if skill in text:
-            found_skills.append(skill)
 
-    return list(set(found_skills))
+        if skill in text:
+
+            skills.append(skill)
+
+    return list(set(skills))
 
 
 # -------------------------------------------------
@@ -125,80 +161,20 @@ def score_feature(text, keywords):
     return round(score,2)
 
 
-# -------------------------------------------------
-# KEYWORDS
-# -------------------------------------------------
-
 education_keywords = [
 "bsc","bachelor","msc","master","phd",
-"computer science","data science","statistics",
-"mathematics","engineering","machine learning"
+"computer science","data science","statistics"
 ]
 
 experience_keywords = [
-"intern","internship","project","research","experience",
-"worked","company","client","team project",
-"developed","implemented","designed"
+"intern","internship","project","research",
+"developed","implemented","team","experience"
 ]
 
 culture_keywords = [
-"team","leadership","communication","presentation",
-"problem solving","adaptability","collaboration"
+"team","leadership","communication",
+"problem solving","collaboration"
 ]
-
-
-# -------------------------------------------------
-# JOB ROLES
-# -------------------------------------------------
-
-roles = [
-{"name":"Business Analyst","weights":np.array([0.4,0.3,0.2,0.1])},
-{"name":"Machine Learning Intern","weights":np.array([0.5,0.2,0.2,0.1])},
-{"name":"Data Analyst","weights":np.array([0.45,0.25,0.2,0.1])},
-{"name":"AI Intern","weights":np.array([0.55,0.15,0.2,0.1])},
-{"name":"Research Analyst","weights":np.array([0.3,0.3,0.25,0.15])}
-]
-
-
-# -------------------------------------------------
-# JOB DESCRIPTIONS
-# -------------------------------------------------
-
-job_descriptions = {
-
-"Business Analyst":
-"business analysis sql excel dashboard reporting data visualization",
-
-"Machine Learning Intern":
-"machine learning python deep learning pandas numpy model training",
-
-"Data Analyst":
-"data analysis sql python tableau statistics visualization reporting",
-
-"AI Intern":
-"artificial intelligence neural networks deep learning nlp python",
-
-"Research Analyst":
-"research statistics data analysis research methodology modeling"
-}
-
-
-# -------------------------------------------------
-# REQUIRED SKILLS
-# -------------------------------------------------
-
-required_skills = {
-
-"Business Analyst":["sql","excel","data analysis","dashboard","tableau"],
-
-"Machine Learning Intern":["python","machine learning","pandas","numpy"],
-
-"Data Analyst":["sql","python","statistics","tableau","excel"],
-
-"AI Intern":["python","deep learning","machine learning","nlp"],
-
-"Research Analyst":["statistics","research","data analysis"]
-}
 
 
 # -------------------------------------------------
@@ -215,69 +191,20 @@ def calculate_ats_score(features):
 
 
 # -------------------------------------------------
-# TFIDF MATCH
-# -------------------------------------------------
-
-def tfidf_role_matching(resume_text):
-
-    docs = [resume_text]
-
-    for role in job_descriptions:
-        docs.append(job_descriptions[role])
-
-    vectorizer = TfidfVectorizer()
-
-    matrix = vectorizer.fit_transform(docs)
-
-    resume_vector = matrix[0]
-
-    similarities = cosine_similarity(resume_vector,matrix[1:])
-
-    scores = {}
-
-    for i,role in enumerate(job_descriptions):
-        scores[role] = round(similarities[0][i]*100,2)
-
-    return scores
-
-
-# -------------------------------------------------
-# SKILL GAP
-# -------------------------------------------------
-
-def detect_skill_gaps(resume_text,role):
-
-    req = required_skills[role]
-
-    missing = []
-
-    for s in req:
-        if s not in resume_text:
-            missing.append(s)
-
-    return missing
-
-
-# -------------------------------------------------
-# COLORFUL WORD CLOUD
+# WORD CLOUD
 # -------------------------------------------------
 
 def generate_wordcloud(text):
 
-    mask = np.array(Image.open("bulb.png"))
-
     wordcloud = WordCloud(
         width=900,
-        height=700,
-        mask=mask,
-        background_color=bg_color,
-        stopwords=stop_words,
-        colormap="plasma",   # colorful palette
-        contour_width=2,
-        contour_color="orange"
+        height=600,
+        background_color="#0e1117",
+        colormap="plasma",
+        stopwords=stop_words
     ).generate(text)
 
-    fig, ax = plt.subplots(figsize=(8,8))
+    fig, ax = plt.subplots(figsize=(10,6))
 
     ax.imshow(wordcloud, interpolation="bilinear")
 
@@ -287,138 +214,149 @@ def generate_wordcloud(text):
 
 
 # -------------------------------------------------
+# ROLE MATCH
+# -------------------------------------------------
+
+roles = {
+"Data Analyst":["sql","python","statistics","tableau"],
+"Machine Learning Intern":["python","machine learning","pandas","numpy"],
+"AI Intern":["python","deep learning","nlp"],
+"Business Analyst":["excel","sql","dashboard"],
+}
+
+
+def role_matching(resume_text):
+
+    scores = {}
+
+    for role in roles:
+
+        score = 0
+
+        for skill in roles[role]:
+
+            if skill in resume_text:
+
+                score += 1
+
+        scores[role] = score*25
+
+    return scores
+
+
+# -------------------------------------------------
 # FILE UPLOAD
 # -------------------------------------------------
 
 uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
 
+
 if uploaded_file:
 
     resume_text = extract_resume_text(uploaded_file)
+
     resume_text = clean_text(resume_text)
-
-    skills_found = extract_skills_nlp(resume_text)
-
-    skill = score_feature(resume_text,skill_dictionary)
-    experience = score_feature(resume_text,experience_keywords)
-    education = score_feature(resume_text,education_keywords)
-    culture = score_feature(resume_text,culture_keywords)
-
-    features = np.array([skill,experience,education,culture])
-
-    ats_score = calculate_ats_score(features)
-
-
-# -------------------------------------------------
-# ATS GAUGE
-# -------------------------------------------------
-
-    st.subheader("ATS Resume Score")
-
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=ats_score,
-        title={'text':"ATS Score"},
-        gauge={'axis':{'range':[0,100]}}
-    ))
-
-    st.plotly_chart(fig,use_container_width=True)
-
-
-# -------------------------------------------------
-# FEATURE SCORES
-# -------------------------------------------------
-
-    st.subheader("Resume Feature Scores")
-
-    st.progress(skill/10)
-    st.write("Skill Score:",skill)
-
-    st.progress(experience/10)
-    st.write("Experience Score:",experience)
-
-    st.progress(education/10)
-    st.write("Education Score:",education)
-
-    st.progress(culture/10)
-    st.write("Culture Score:",culture)
 
 
 # -------------------------------------------------
 # SKILLS
 # -------------------------------------------------
 
-    st.subheader("Extracted Skills")
+    skills_found = extract_skills_nlp(resume_text)
+
+    st.subheader("🧠 Extracted Skills")
 
     st.write(", ".join(skills_found))
+
+
+# -------------------------------------------------
+# FEATURE SCORES
+# -------------------------------------------------
+
+    skill = score_feature(resume_text,skill_dictionary)
+
+    experience = score_feature(resume_text,experience_keywords)
+
+    education = score_feature(resume_text,education_keywords)
+
+    culture = score_feature(resume_text,culture_keywords)
+
+    features = np.array([skill,experience,education,culture])
+
+
+# -------------------------------------------------
+# ATS SCORE
+# -------------------------------------------------
+
+    ats_score = calculate_ats_score(features)
+
+    st.subheader("📊 ATS Resume Score")
+
+    fig = go.Figure(go.Indicator(
+
+        mode="gauge+number",
+
+        value=ats_score,
+
+        title={'text':"ATS Score"},
+
+        gauge={
+        'axis':{'range':[0,100]},
+        'bar':{'color':"#00F5D4"}
+        }
+
+    ))
+
+    st.plotly_chart(fig,use_container_width=True)
 
 
 # -------------------------------------------------
 # WORD CLOUD
 # -------------------------------------------------
 
-    st.subheader("💡 Resume Idea Cloud")
+    st.subheader("💡 Resume Word Cloud")
 
-    wordcloud_fig = generate_wordcloud(resume_text)
+    wc = generate_wordcloud(resume_text)
 
-    st.pyplot(wordcloud_fig)
+    st.pyplot(wc)
 
 
 # -------------------------------------------------
-# ROLE MATCH
+# ROLE MATCHING
 # -------------------------------------------------
 
-    results = []
+    st.subheader("🚀 Job Role Matching")
 
-    for role in roles:
+    scores = role_matching(resume_text)
 
-        role_score = np.dot(role["weights"],features) * 10
-        role_score = min(role_score,100)
+    fig2 = px.bar(
 
-        results.append((role["name"],round(role_score,2)))
+        x=list(scores.keys()),
 
-    results.sort(key=lambda x:x[1],reverse=True)
+        y=list(scores.values()),
 
-    role_names = [r[0] for r in results]
-    role_scores = [r[1] for r in results]
+        color=list(scores.values()),
 
-    st.subheader("Best Job Role Matches")
+        color_continuous_scale="plasma"
 
-    fig2 = px.bar(x=role_names,y=role_scores)
+    )
 
     st.plotly_chart(fig2,use_container_width=True)
 
 
 # -------------------------------------------------
-# NLP SIMILARITY
+# FOOTER
 # -------------------------------------------------
 
-    st.subheader("NLP Job Similarity")
+st.markdown(
+"""
+<div class="footer">
 
-    tfidf_scores = tfidf_role_matching(resume_text)
+Made with lots of ❤️ and Python 🐍  
 
-    fig3 = px.bar(
-        x=list(tfidf_scores.keys()),
-        y=list(tfidf_scores.values())
-    )
+🔗 LinkedIn: https://www.linkedin.com/
 
-    st.plotly_chart(fig3,use_container_width=True)
-
-
-# -------------------------------------------------
-# SKILL GAP
-# -------------------------------------------------
-
-    top_role = results[0][0]
-
-    missing = detect_skill_gaps(resume_text,top_role)
-
-    st.subheader("Skill Gap Analysis")
-
-    st.write("Recommended Role:",top_role)
-
-    if len(missing)==0:
-        st.success("No major skill gaps detected")
-    else:
-        for m in missing:
-            st.write("-",m)
+</div>
+""",
+unsafe_allow_html=True
+)
