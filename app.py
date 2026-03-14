@@ -13,7 +13,7 @@ from nltk.corpus import stopwords
 # PAGE CONFIG
 # ---------------------------------------------------
 st.set_page_config(
-    page_title="AI-Powered-Resume-Screening-and-Job-Role-Matching-System",
+    page_title="CareerBoost AI",
     page_icon="🤖",
     layout="wide"
 )
@@ -35,26 +35,26 @@ html, body, [class*="st-"] {
     color: white;
 }
 
-/* MASSIVE RESPONSIVE TITLE */
+/* REDUCED TITLE SIZE - SMALLER & CLEANER */
 .big-title {
-    font-size: clamp(60px, 12vw, 160px) !important;
+    font-size: clamp(40px, 6vw, 80px) !important;
     font-weight: 900 !important;
     text-align: center;
     background: linear-gradient(180deg, #ff0000 0%, #8b0000 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0px;
-    letter-spacing: -4px;
-    filter: drop-shadow(0px 10px 20px rgba(255, 0, 0, 0.3));
+    letter-spacing: -2px;
+    filter: drop-shadow(0px 5px 10px rgba(255, 0, 0, 0.3));
     text-transform: uppercase;
 }
 
 /* ENHANCED SUBTITLE */
 .sub-title {
-    font-size: 36px !important;
+    font-size: 24px !important;
     text-align: center;
     color: #ff4d4d;
-    margin-bottom: 60px;
+    margin-bottom: 40px;
     font-weight: 300;
     text-transform: uppercase;
     letter-spacing: 4px;
@@ -76,7 +76,7 @@ html, body, [class*="st-"] {
 
 /* HEADINGS */
 h2 {
-    font-size: 55px !important;
+    font-size: 45px !important;
     color: #ff3333 !important;
     text-transform: uppercase;
     font-weight: 800 !important;
@@ -134,11 +134,11 @@ h2 {
 # ---------------------------------------------------
 # TITLE SECTION
 # ---------------------------------------------------
-st.markdown('<p class="big-title">CareerBoost AI: Resume Analyzer/p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Advanced Resume </p>', unsafe_allow_html=True)
+st.markdown('<p class="big-title">CareerBoost AI</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Advanced Resume Intelligence</p>', unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# NLTK DOWNLOAD (SAME LOGIC)
+# NLTK DOWNLOAD (STRICTLY UNCHANGED)
 # ---------------------------------------------------
 try:
     nltk.data.find("tokenizers/punkt")
@@ -302,7 +302,5 @@ if uploaded_file:
 st.markdown("""
 <div class="footer">
     MADE WITH ❤️ AND PYTHON 🐍 | 🔗 LinkedIn: www.linkedin.com/in/ramsha-khan-582522291
-
-
 </div>
 """, unsafe_allow_html=True)
