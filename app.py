@@ -22,7 +22,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
-# DARK THEME CSS
+# RED BLACK DARK THEME
 # ---------------------------------------------------
 
 st.markdown("""
@@ -31,52 +31,64 @@ st.markdown("""
 /* MAIN BACKGROUND */
 
 .stApp{
-background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+background: linear-gradient(135deg,#000000,#0f0f0f,#1a0000,#300000);
 color:white;
-font-size:20px;
+font-size:22px;
 }
 
 
 /* MAIN TITLE */
 
 .big-title{
-font-size:80px;
+font-size:90px;
 font-weight:900;
 text-align:center;
-background: linear-gradient(90deg,#00F5D4,#9B5DE5,#F15BB5);
+background: linear-gradient(90deg,#ff0000,#ff4d4d,#ff0000);
 -webkit-background-clip:text;
 -webkit-text-fill-color:transparent;
 margin-bottom:10px;
+letter-spacing:2px;
 }
 
 
 /* SUBTITLE */
 
 .sub-title{
-font-size:28px;
+font-size:32px;
 text-align:center;
-color:#EAEAEA;
-margin-bottom:30px;
+color:#dddddd;
+margin-bottom:40px;
 }
 
 
-/* SECTION HEADINGS */
+/* SECTION CARDS */
+
+.card{
+background: rgba(255,255,255,0.03);
+padding:25px;
+border-radius:15px;
+margin-bottom:25px;
+border:1px solid rgba(255,0,0,0.2);
+}
+
+
+/* HEADINGS */
 
 h2{
-font-size:36px !important;
-color:#00F5D4 !important;
+font-size:40px !important;
+color:#ff4d4d !important;
 }
 
 h3{
-font-size:30px !important;
-color:#9B5DE5 !important;
+font-size:34px !important;
+color:#ff8080 !important;
 }
 
 
-/* TEXT SIZE */
+/* TEXT */
 
 p, span, label{
-font-size:20px !important;
+font-size:22px !important;
 }
 
 
@@ -84,27 +96,27 @@ font-size:20px !important;
 
 .stButton>button{
 
-background: linear-gradient(45deg,#00F5D4,#9B5DE5);
+background: linear-gradient(45deg,#ff0000,#8b0000);
 color:white;
-font-size:20px;
+font-size:22px;
 font-weight:bold;
-border-radius:12px;
-height:55px;
-width:240px;
+border-radius:14px;
+height:60px;
+width:260px;
 border:none;
 transition:0.3s;
 }
 
 .stButton>button:hover{
-transform:scale(1.05);
-box-shadow:0px 0px 15px #00F5D4;
+transform:scale(1.07);
+box-shadow:0px 0px 20px red;
 }
 
 
 /* FILE UPLOAD */
 
 [data-testid="stFileUploader"]{
-font-size:20px;
+font-size:22px;
 }
 
 
@@ -118,8 +130,9 @@ width:100%;
 text-align:center;
 padding:12px;
 font-size:18px;
-background-color:#0E1117;
+background-color:black;
 color:white;
+border-top:1px solid red;
 }
 
 </style>
@@ -129,11 +142,10 @@ color:white;
 # TITLE
 # ---------------------------------------------------
 
-st.markdown('<p class="big-title">🤖 AI Resume Analyzer</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-title">AI Resume Analyzer</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Upload your resume and get AI powered insights</p>', unsafe_allow_html=True)
 
 st.write("")
-
 
 # ---------------------------------------------------
 # NLTK DOWNLOAD
@@ -151,7 +163,6 @@ except:
 
 stop_words = set(stopwords.words("english"))
 
-
 # ---------------------------------------------------
 # SKILL DATABASE
 # ---------------------------------------------------
@@ -168,9 +179,8 @@ skill_dictionary = [
 
 ]
 
-
 # ---------------------------------------------------
-# REQUIRED SKILLS FOR ROLES
+# REQUIRED SKILLS
 # ---------------------------------------------------
 
 required_skills = {
@@ -193,13 +203,11 @@ required_skills = {
 
 }
 
-
 # ---------------------------------------------------
 # FILE UPLOAD
 # ---------------------------------------------------
 
 uploaded_file = st.file_uploader("📄 Upload Resume PDF", type=["pdf"])
-
 
 # ---------------------------------------------------
 # FUNCTIONS
@@ -221,7 +229,6 @@ def extract_text(file):
     return text.lower()
 
 
-
 def extract_skills(text):
 
     found=[]
@@ -232,7 +239,6 @@ def extract_skills(text):
             found.append(skill)
 
     return list(set(found))
-
 
 
 def score_section(text, keywords):
@@ -249,7 +255,6 @@ def score_section(text, keywords):
     return round(score,2)
 
 
-
 def ats_score(skill,exp,edu,culture):
 
     ats=(skill*3)+(exp*3)+(edu*2)+(culture*2)
@@ -257,14 +262,13 @@ def ats_score(skill,exp,edu,culture):
     return round(min(ats,100),2)
 
 
-
 def generate_wordcloud(text):
 
     wc=WordCloud(
         width=900,
         height=500,
-        background_color="#0E1117",
-        colormap="plasma",
+        background_color="black",
+        colormap="Reds",
         stopwords=stop_words
     ).generate(text)
 
@@ -274,7 +278,6 @@ def generate_wordcloud(text):
     ax.axis("off")
 
     return fig
-
 
 
 def role_matching(text):
@@ -313,7 +316,6 @@ def role_matching(text):
     return scores
 
 
-
 def detect_skill_gap(text,role):
 
     required=required_skills[role]
@@ -328,7 +330,6 @@ def detect_skill_gap(text,role):
     return missing
 
 
-
 # ---------------------------------------------------
 # ANALYZE BUTTON
 # ---------------------------------------------------
@@ -339,16 +340,15 @@ if uploaded_file:
 
         resume_text = extract_text(uploaded_file)
 
-
-# ---------------------------------------------------
-# SKILLS
-# ---------------------------------------------------
+        st.markdown('<div class="card">', unsafe_allow_html=True)
 
         st.subheader("🧠 Extracted Skills")
 
         skills = extract_skills(resume_text)
 
         st.success(", ".join(skills))
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ---------------------------------------------------
@@ -369,7 +369,6 @@ if uploaded_file:
 
         culture_score = score_section(resume_text,culture_keywords)
 
-
 # ---------------------------------------------------
 # ATS SCORE
 # ---------------------------------------------------
@@ -384,7 +383,8 @@ if uploaded_file:
 
         value=ats,
 
-        gauge={'axis':{'range':[0,100]}},
+        gauge={'axis':{'range':[0,100]},
+        'bar':{'color':"red"}},
 
         title={'text':"ATS Resume Score"}
 
@@ -405,8 +405,6 @@ if uploaded_file:
 
         st.pyplot(wc)
 
-
-
 # ---------------------------------------------------
 # ROLE MATCHING
 # ---------------------------------------------------
@@ -420,14 +418,13 @@ if uploaded_file:
         x=list(scores.keys()),
         y=list(scores.values()),
         color=list(scores.values()),
-        color_continuous_scale="plasma"
+        color_continuous_scale="Reds"
 
         )
 
         fig2.update_layout(template="plotly_dark")
 
         st.plotly_chart(fig2,use_container_width=True)
-
 
 # ---------------------------------------------------
 # SKILL GAP
@@ -452,7 +449,6 @@ if uploaded_file:
             for m in missing:
 
                 st.write("•",m)
-
 
 # ---------------------------------------------------
 # FOOTER
