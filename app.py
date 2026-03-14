@@ -22,17 +22,22 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
-# CUSTOM CSS (BIG TITLE + COLORFUL UI)
+# DARK THEME CSS
 # ---------------------------------------------------
 
 st.markdown("""
 <style>
 
-.big-title {
-font-size:60px !important;
+.stApp{
+background-color:#0E1117;
+color:white;
+}
+
+.big-title{
+font-size:70px;
 font-weight:bold;
-color:#00F5D4;
 text-align:center;
+color:#00F5D4;
 }
 
 .sub-title{
@@ -45,9 +50,10 @@ color:white;
 background-color:#00F5D4;
 color:black;
 font-size:18px;
-border-radius:10px;
+font-weight:bold;
+border-radius:12px;
 height:50px;
-width:200px;
+width:220px;
 }
 
 .footer{
@@ -56,9 +62,9 @@ bottom:0;
 left:0;
 width:100%;
 text-align:center;
-color:white;
-font-size:14px;
 padding:10px;
+font-size:14px;
+color:white;
 }
 
 </style>
@@ -76,7 +82,7 @@ st.write("")
 
 
 # ---------------------------------------------------
-# DOWNLOAD NLTK
+# NLTK DOWNLOAD
 # ---------------------------------------------------
 
 try:
@@ -152,6 +158,7 @@ def extract_text(file):
     text=""
 
     for page in reader.pages:
+
         t = page.extract_text()
 
         if t:
@@ -202,7 +209,7 @@ def generate_wordcloud(text):
     wc=WordCloud(
         width=900,
         height=500,
-        background_color="black",
+        background_color="#0E1117",
         colormap="plasma",
         stopwords=stop_words
     ).generate(text)
@@ -315,7 +322,7 @@ if uploaded_file:
 
         ats = ats_score(skill_score,exp_score,edu_score,culture_score)
 
-        st.subheader("📊 ATS Score")
+        st.subheader("📊 ATS Resume Score")
 
         fig = go.Figure(go.Indicator(
 
@@ -328,6 +335,8 @@ if uploaded_file:
         title={'text':"ATS Resume Score"}
 
         ))
+
+        fig.update_layout(template="plotly_dark")
 
         st.plotly_chart(fig,use_container_width=True)
 
@@ -360,6 +369,8 @@ if uploaded_file:
         color_continuous_scale="plasma"
 
         )
+
+        fig2.update_layout(template="plotly_dark")
 
         st.plotly_chart(fig2,use_container_width=True)
 
