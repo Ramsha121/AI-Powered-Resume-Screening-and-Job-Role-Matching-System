@@ -11,9 +11,18 @@ from sklearn.metrics.pairwise import cosine_similarity
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-nltk.download('punkt')
-nltk.download('stopwords')
+import nltk
 
+# Ensure required NLTK resources are available
+def download_nltk_resources():
+    resources = ["punkt", "punkt_tab", "stopwords"]
+    for resource in resources:
+        try:
+            nltk.data.find(resource)
+        except LookupError:
+            nltk.download(resource)
+
+download_nltk_resources()
 # -------------------------------------------------
 # PAGE CONFIG
 # -------------------------------------------------
