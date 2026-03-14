@@ -134,7 +134,7 @@ h2 {
 # ---------------------------------------------------
 # TITLE SECTION
 # ---------------------------------------------------
-st.markdown('<p class="big-title">AI-Powered-Resume Screening & Job Role Matching System</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-title">CareerBoost AI: Resume Analyzer/p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Advanced Resume </p>', unsafe_allow_html=True)
 
 # ---------------------------------------------------
