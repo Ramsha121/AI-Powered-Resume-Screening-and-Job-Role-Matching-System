@@ -34,7 +34,7 @@ font-size:26px;
 
 /* MAIN TITLE */
 .big-title{
-font-size:110px;
+font-size:500px;
 font-weight:900;
 text-align:center;
 background: linear-gradient(90deg,#ff0000,#ff4d4d,#ff0000);
