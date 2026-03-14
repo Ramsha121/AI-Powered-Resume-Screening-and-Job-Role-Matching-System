@@ -114,7 +114,7 @@ margin-top: 50px;
 # ---------------------------------------------------
 # TITLE
 # ---------------------------------------------------
-st.markdown('<p class="big-title">AI RESUME INSIGHTS</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-title">AI-Powered Resume Insights </p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Upload your resume and get AI powered insights</p>', unsafe_allow_html=True)
 st.write("")
 
