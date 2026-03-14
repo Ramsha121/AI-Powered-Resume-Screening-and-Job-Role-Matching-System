@@ -1,0 +1,8 @@
+streamlit
+PyPDF2
+scikit-learn
+nltk
+numpy
+plotly
+wordcloud
+matplotlib
