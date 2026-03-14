@@ -28,33 +28,87 @@ st.set_page_config(
 st.markdown("""
 <style>
 
+/* MAIN BACKGROUND */
+
 .stApp{
-background-color:#0E1117;
+background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:white;
+font-size:20px;
 }
+
+
+/* MAIN TITLE */
 
 .big-title{
-font-size:70px;
-font-weight:bold;
+font-size:80px;
+font-weight:900;
 text-align:center;
-color:#00F5D4;
+background: linear-gradient(90deg,#00F5D4,#9B5DE5,#F15BB5);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+margin-bottom:10px;
 }
+
+
+/* SUBTITLE */
 
 .sub-title{
-font-size:22px;
+font-size:28px;
 text-align:center;
-color:white;
+color:#EAEAEA;
+margin-bottom:30px;
 }
 
+
+/* SECTION HEADINGS */
+
+h2{
+font-size:36px !important;
+color:#00F5D4 !important;
+}
+
+h3{
+font-size:30px !important;
+color:#9B5DE5 !important;
+}
+
+
+/* TEXT SIZE */
+
+p, span, label{
+font-size:20px !important;
+}
+
+
+/* BUTTON STYLE */
+
 .stButton>button{
-background-color:#00F5D4;
-color:black;
-font-size:18px;
+
+background: linear-gradient(45deg,#00F5D4,#9B5DE5);
+color:white;
+font-size:20px;
 font-weight:bold;
 border-radius:12px;
-height:50px;
-width:220px;
+height:55px;
+width:240px;
+border:none;
+transition:0.3s;
 }
+
+.stButton>button:hover{
+transform:scale(1.05);
+box-shadow:0px 0px 15px #00F5D4;
+}
+
+
+/* FILE UPLOAD */
+
+[data-testid="stFileUploader"]{
+font-size:20px;
+}
+
+
+/* FOOTER */
 
 .footer{
 position:fixed;
@@ -62,14 +116,14 @@ bottom:0;
 left:0;
 width:100%;
 text-align:center;
-padding:10px;
-font-size:14px;
+padding:12px;
+font-size:18px;
+background-color:#0E1117;
 color:white;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
 
 # ---------------------------------------------------
 # TITLE
