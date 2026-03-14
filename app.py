@@ -123,7 +123,7 @@ border-top:2px solid red !important;
 # ---------------------------------------------------
 # TITLE
 # ---------------------------------------------------
-st.markdown('<p class="big-title">🔥 CareerBoost AI: Resume Analyzer</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-title">🔥 AI-Powered Resume Insights </p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Upload your resume and get AI powered insights</p>', unsafe_allow_html=True)
 st.write("")
 
