@@ -25,7 +25,7 @@ st.markdown("""
 <style>
 /* GLOBAL FONT OVERRIDE - MAKES EVERYTHING LARGER */
 html, body, [class*="st-"] {
-    font-size: 28px !important;
+    font-size: 30px !important;
     font-family: 'Inter', sans-serif;
 }
 
