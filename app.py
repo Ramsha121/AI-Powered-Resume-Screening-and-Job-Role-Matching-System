@@ -13,7 +13,7 @@ from nltk.corpus import stopwords
 # PAGE CONFIG
 # ---------------------------------------------------
 st.set_page_config(
-    page_title="AI Resume Analyzer Pro",
+    page_title="AI-Powered-Resume-Screening-and-Job-Role-Matching-System",
     page_icon="🤖",
     layout="wide"
 )
