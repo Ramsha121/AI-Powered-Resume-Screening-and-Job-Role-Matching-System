@@ -29,7 +29,7 @@ st.markdown("""
 .stApp{
 background: linear-gradient(135deg,#000000,#0f0f0f,#1a0000,#300000);
 color:white;
-font-size:26px;
+font-size:45px;
 }
 
 /* MAIN TITLE */
